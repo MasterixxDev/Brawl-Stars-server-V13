@@ -1,4 +1,4 @@
-[![Client](https://www.apkmirror.com/apk/supercell/brawl-stars/brawl-stars-13-283-release/)
+[Client](https://www.apkmirror.com/apk/supercell/brawl-stars/brawl-stars-13-283-release/)
 
 ---
 
