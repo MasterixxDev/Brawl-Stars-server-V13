@@ -1,0 +1,164 @@
+from Utils.Helpers import Helpers
+import json, random, os
+import time
+
+class Shop:
+    """
+    << Shop Offers IDs List >>
+
+    0 = Free Brawl Box +
+    1 = Gold
+    2 = Random Brawler
+    3 = Brawler
+    4 = Skin
+    5 = StarPower/ Gadget
+    6 = Brawl Box +
+    7 = Tickets
+    8 = Power Points (for a specific brawler)
+    9 = Token Doubler
+    10 = Mega Box +
+    11 = Keys (???)
+    12 = Power Points
+    13 = EventSlot (???)
+    14 = Big Box +
+    15 = AdBox (not working anymore)
+    16 = Gems
+
+    """
+
+    offers = [
+        
+        {
+            'ID': 14,
+            'Cost': 0,
+            'Multiplier': 1,
+            'BrawlerID': 0,
+            'SkinID': 0,
+            'ShopType': 0,
+            'ShopDisplay': 1,
+        },
+
+
+    ]
+
+    def loadOffers(self):
+    	self.offers=[]        
+    	with open("JSON/offers.json", "r") as f:
+    		data = json.load(f)
+    		for i in data.values():
+    			self.offers.append(i)
+    def UpdateOfferData(self, i):
+    	with open("JSON/offers.json", "r") as f:
+    		data = json.load(f)
+    	data[str(i)]["WhoBuyed"].append(int(self.player.low_id))
+    	with open("JSON/offers.json", "w") as f:
+    		json.dump(data, f, ensure_ascii=False)
+    def RemoveOffer(self, i):
+    	with open("JSON/offers.json", "r") as f:
+    		data = json.load(f)
+    	data.pop(str(i))
+    	with open("JSON/offers.json", "w") as f:
+    		json.dump(data, f, ensure_ascii=False)
+    gold = [
+        {
+            'Cost': 20,
+            'Amount': 150
+        },
+
+        {
+            'Cost': 50,
+            'Amount': 400
+        },
+
+        {
+            'Cost': 140,
+            'Amount': 1200
+        }
+
+    ]
+
+    boxes = [
+        {
+            'Name': 'Big Box',
+            'Cost': 30,
+            'Multiplier': 3
+        },
+
+        {
+            'Name': 'Mega Box',
+            'Cost': 80,
+            'Multiplier': 10
+        }
+
+    ]
+
+
+    token_doubler = {
+
+        'Cost': 50,
+        'Amount': 1000
+    }
+
+    def Timer(self):
+        result = time.localtime(int(time.time()))
+        return (86400 - (result.tm_sec + (result.tm_min * 60) + (result.tm_hour * 3600)))
+
+    def EncodeShopOffers(self):
+        Shop.loadOffers(self)
+        Timer = Shop.Timer(self)
+        wow = self.offers
+        count = len(wow)
+        self.writeVint(count)
+        for i in range(count):
+            x = wow[i]
+
+            if x['ID'][0] != 0 and x['ID'][1] != 0 and x['ID'][2] != 0:
+                self.writeVint(3)
+                self.writeVint(x['ID'][0]) # xID
+                self.writeVint(x['Multiplier'][0]) # Ammount
+                self.writeScId(16, x['BrawlerID'][0])
+                self.writeVint(x['SkinID'][0]) # xID
+                
+                self.writeVint(x['ID'][1]) # xID
+                self.writeVint(x['Multiplier'][1]) # Ammount
+                self.writeScId(16, x['BrawlerID'][1])
+                self.writeVint(x['SkinID'][1]) # xID
+                
+                self.writeVint(x['ID'][2]) # xID
+                self.writeVint(x['Multiplier'][2]) # Ammount
+                self.writeScId(16, x['BrawlerID'][2])
+                self.writeVint(x['SkinID'][2]) # xID
+            elif x['ID'][0] != 0 and x['ID'][1] != 0:
+                self.writeVint(2)
+                self.writeVint(x['ID'][0]) # xID
+                self.writeVint(x['Multiplier'][0]) # Ammount
+                self.writeScId(16, x['BrawlerID'][0])
+                self.writeVint(x['SkinID'][0]) # xID
+                
+                self.writeVint(x['ID'][1]) # xID
+                self.writeVint(x['Multiplier'][1]) # Ammount
+                self.writeScId(16, x['BrawlerID'][1])
+                self.writeVint(x['SkinID'][1]) # xID
+            else:
+                self.writeVint(1)
+                self.writeVint(x['ID'][0]) # xID
+                self.writeVint(x['Multiplier'][0]) # Ammount
+                self.writeScId(16, x['BrawlerID'][0])
+                self.writeVint(x['SkinID'][0]) # xID
+            self.writeVint(x['ShopType'])  # [0 = Offer, 2 = Skins 3 = Star Shop]
+
+            self.writeVint(x['Cost'])  # Cost
+            self.writeVint(3874) # Timer
+
+
+            self.writeVint(1)
+            self.writeVint(100)
+            if self.player.low_id in x["WhoBuyed"]:
+            		self.writeVint(1)
+            else:
+            		self.writeVint(0)
+
+            self.writeBoolean(False)
+            self.writeVint(x['ShopDisplay'])  # [0 = Normal, 1 = Daily Deals]
+            self.writeBoolean(False)
+            self.writeInt(0)
